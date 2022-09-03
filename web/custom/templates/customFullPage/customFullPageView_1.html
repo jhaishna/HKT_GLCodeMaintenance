@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html>
+    <head>
+       <script src="https://code.jquery.com/jquery-3.6.0.min.js"> </script>
+        <script type="text/javascript">
+            function ajaxCall() {
+                
+                //var criteriaObject = [{"field":"Domain","value":"Reason Codes-*"}];
+                var reasonCodeValue = document.getElementById("reasonCodeInput");
+                if(reasonCodeValue.value && !/^[0-9%]+$/.test(reasonCodeValue.value)){
+                    alert("Only numbers are allowed for Reason Code");
+                    return;
+                }
+                var prefixAdjustmentValue = document.getElementById("adjustmentPrefixInput");
+                if(prefixAdjustmentValue.value && !/^[0-9%]+$/.test(prefixAdjustmentValue.value)){
+                    alert("Only numbers are allowed for Prefix of Adjustment");
+                    return;
+                }
+                var englishDescriptionValue = document.getElementById("descriptionInput");
+                if(englishDescriptionValue.value && englishDescriptionValue.value == ""){
+                    alert("English Description Cannot be Empty");
+                    return;
+                }
+                var glidValue = document.getElementById("glidInput");
+                if(glidValue.value && !/^[0-9%]+$/.test(glidValue.value)){
+                    alert("Only numbers are allowed for GLID");
+                    return;
+                }
+               
+                
+            $.ajax({
+                    type: "POST",
+                    url: "http://10.166.4.65:8001/BillingCareAPI/adjustmentCodeSearch",
+                    contentType: "application/json; charset=utf-8",
+                    data: JSON.stringify({
+                        reasonCode : reasonCodeValue.value,
+                        prefixAdjustment : prefixAdjustmentValue.value,
+                        description : englishDescriptionValue.value,
+                        glid : glidValue.value
+                       // criterias : criteriaObject
+                    }),
+                    processData: false,
+                   // beforeSend: function (xhr) {
+                   //   util.setRequestHeader(xhr)
+                   // },
+                    dataType: "json",
+  
+                // Function to call when to
+                // request is ok 
+                success: function (data) {
+                    console.log(data); 
+
+       document.getElementById("dynamicErrorTable").innerHTML="";
+        
+        var customers = new Array();
+        customers.push(["CreatedT","AdjustmentCode","English Description","Chinese Description","Glid"]);
+                    
+                    // Dynamic Table Start
+                    
+        //Create a HTML Table element.
+        var table = document.createElement("TABLE");
+        table.setAttribute("id", "dynamicTableId")
+        table.border = "1";
+        
+        console.log(customers);
+        //Get the count of columns.
+        var columnCount = customers[0].length;
+        console.log("columnCount.."+columnCount);
+        //Add the header row.
+        var row = table.insertRow(-1);
+        for (var i = 0; i < columnCount; i++) {
+            var headerCell = document.createElement("TH");
+            headerCell.innerHTML = customers[0][i];
+            row.appendChild(headerCell);
+        }
+            
+        var tempArray = new Array();
+       
+      if (data.results && data.results.length) {
+        for (var i = 0; i < data.results.length; i++) {
+           //  for (var j = 0; j < data.results[i].column.length; j++) {
+            //    tempArray.push(data.results[i].column[j].value);
+             //   if(j === data.results[i].column.length-1) {
+                    customers.push([data.results[i].createdDate,data.results[i].adjustmentCode,data.results[i].englishDescription,data.results[i].chineseDescription,data.results[i].glid]);
+                //    tempArray = new Array();
+             //   }
+           // }
+        }
+    }
+       
+        
+        //Add the data rows.
+        for (var i = 1; i < customers.length; i++) {
+            row = table.insertRow(-1);
+            for (var j = 0; j < columnCount; j++) {
+                var cell = row.insertCell(-1);
+                cell.innerHTML = customers[i][j];
+            }
+        }
+ 
+        var dynamicTable = document.getElementById("dynamicTable");
+        dynamicTable.innerHTML = "";
+        dynamicTable.appendChild(table);
+        var exportIdButton = document.getElementById("exportId");
+        exportIdButton.style.display="";
+        alert("dadddd");
+        },
+  
+                // Error handling 
+                error: function (error) {
+                     console.log("ERROR Response::"+error);
+                      if(error.errorCode && error.errorDescription) {
+            document.getElementById("dynamicErrorTable").innerHTML=error.errorDescription;  
+            var dynamicTable = document.getElementById("dynamicTable");
+            dynamicTable.innerHTML = "";
+        }
+                }
+            });
+        }
+
+    function changeDisplay() {
+        var searchOptions = document.getElementById("searchOptionsId");
+        var reasonCodeLabel = document.getElementById("reasonCodeLabel");
+        var reasonCodeInput = document.getElementById("reasonCodeInput");
+        var adjustmentPrefixLabel = document.getElementById("adjustmentPrefixLabel");
+        var adjustmentPrefixInput = document.getElementById("adjustmentPrefixInput");
+        var descriptionLabel = document.getElementById("descriptionLabel");
+        var descriptionInput = document.getElementById("descriptionInput");
+        var glidLabel = document.getElementById("glidLabel");
+        var glidInput = document.getElementById("glidInput");
+        var searchId = document.getElementById("searchId");
+        var cancelId = document.getElementById("cancelId");
+        
+        reasonCodeInput.value = "";
+        adjustmentPrefixInput.value ="";
+        descriptionInput.value = "";
+        glidInput.value = "";
+        
+          //Update this to your logic...
+          if(searchOptions.value === "arc") {
+            reasonCodeLabel.style.display="";
+            reasonCodeInput.style.display="";
+            adjustmentPrefixLabel.style.display = 'none';
+            adjustmentPrefixInput.style.display = 'none';
+            descriptionLabel.style.display = 'none';
+            descriptionInput.style.display = 'none';
+            glidLabel.style.display = 'none';
+            glidInput.style.display = 'none';
+          } else if(searchOptions.value === "acr") {
+            adjustmentPrefixLabel.style.display = "";
+            adjustmentPrefixInput.style.display = "";
+            reasonCodeLabel.style.display = 'none';
+            reasonCodeInput.style.display = 'none';
+            descriptionLabel.style.display = 'none';
+            descriptionInput.style.display = 'none';
+            glidLabel.style.display = 'none';
+            glidInput.style.display = 'none';
+          } else if(searchOptions.value === "eDesc") {
+            descriptionLabel.style.display = "";
+            descriptionInput.style.display = "";
+            reasonCodeLabel.style.display = 'none';
+            reasonCodeInput.style.display = 'none';
+            adjustmentPrefixLabel.style.display = 'none';
+            adjustmentPrefixInput.style.display = 'none';
+            glidLabel.style.display = 'none';
+            glidInput.style.display = 'none';
+          } else if(searchOptions.value === "glid") {
+            glidLabel.style.display = "";
+            glidInput.style.display = "";
+            reasonCodeLabel.style.display = 'none';
+            reasonCodeInput.style.display = 'none';
+            adjustmentPrefixLabel.style.display = 'none';
+            adjustmentPrefixInput.style.display = 'none';
+            descriptionLabel.style.display = 'none';
+            descriptionInput.style.display = 'none';
+          }
+          
+          if(searchOptions.value === "glid" || searchOptions.value === "eDesc" || searchOptions.value === "acr" || searchOptions.value === "arc") {
+            searchId.style.display = "";
+            cancelId.style.display = "";
+          }
+          
+          if(searchOptions.value === "0") {
+            searchId.style.display = "none";
+            cancelId.style.display = "none";
+            glidLabel.style.display = 'none';
+            glidInput.style.display = 'none';
+            reasonCodeLabel.style.display = 'none';
+            reasonCodeInput.style.display = 'none';
+            adjustmentPrefixLabel.style.display = 'none';
+            adjustmentPrefixInput.style.display = 'none';
+            descriptionLabel.style.display = 'none';
+            descriptionInput.style.display = 'none';
+          }
+    }
+        
+        
+        function search() { 
+            ajaxCall();
+        }
+        
+        function cancel() {
+        var searchOptions = document.getElementById("searchOptionsId");
+        var reasonCodeLabel = document.getElementById("reasonCodeLabel");
+        var reasonCodeInput = document.getElementById("reasonCodeInput");
+        var adjustmentPrefixLabel = document.getElementById("adjustmentPrefixLabel");
+        var adjustmentPrefixInput = document.getElementById("adjustmentPrefixInput");
+        var descriptionLabel = document.getElementById("descriptionLabel");
+        var descriptionInput = document.getElementById("descriptionInput");
+        var glidLabel = document.getElementById("glidLabel");
+        var glidInput = document.getElementById("glidInput");
+        var searchId = document.getElementById("searchId");
+        var cancelId = document.getElementById("cancelId");
+           searchId.style.display = "none";
+            cancelId.style.display = "none";
+            glidLabel.style.display = 'none';
+            glidInput.style.display = 'none';
+            reasonCodeLabel.style.display = 'none';
+            reasonCodeInput.style.display = 'none';
+            adjustmentPrefixLabel.style.display = 'none';
+            adjustmentPrefixInput.style.display = 'none';
+            descriptionLabel.style.display = 'none';
+            descriptionInput.style.display = 'none';
+            searchOptions.value = "0"
+        }
+        
+        function exportExcel(tableID, filename = ''){
+    var downloadLink;
+    var dataType = 'application/vnd.ms-excel';
+    var tableSelect = document.getElementById(tableID);
+    var tableHTML = tableSelect.outerHTML.replace(/ /g, '%20');
+    
+    // Specify file name
+    filename = filename?filename+'.xls':'excel_data.xls';
+    
+    // Create download link element
+    downloadLink = document.createElement("a");
+    
+    document.body.appendChild(downloadLink);
+    
+    if(navigator.msSaveOrOpenBlob){
+        var blob = new Blob(['\ufeff', tableHTML], {
+            type: dataType
+        });
+        navigator.msSaveOrOpenBlob( blob, filename);
+    }else{
+        // Create a link to the file
+        downloadLink.href = 'data:' + dataType + ', ' + tableHTML;
+    
+        // Setting the file name
+        downloadLink.download = filename;
+        
+        //triggering the function
+        downloadLink.click();
+    }
+}
+        
+        </script>
+        
+    </head>
+<body>
+<form id="AdjustmentCodeEnquiry" name="AdjustmentCodeEnquiryForm" autocomplete="off">
+    <br>
+    <center>  <h1><u>Adjustment Code Enquiry</u></h1> </center>  <br><br>
+    <center>
+    <table border = "1" width = "35%" cellpadding="1" cellspacing="0" bordercolor = "#00A2E8" bgcolor = "white" align="center">
+         
+         <tr align="center">
+             <td>
+                <label>Search :</label>
+                <select name="searchOptions" id="searchOptionsId" onchange="changeDisplay()">
+                  <option value="0">Select Search Options</option>
+                  <option value="arc">Adjustment Reason Code</option>
+                  <option value="acr">Prefix of Adjustment</option>
+                  <option value="eDesc">English Description</option>
+                  <option value="glid">GLID</option>
+                </select>
+             </td>
+         </tr>
+         <tr align="center">
+             <td>
+<label id="reasonCodeLabel" style="display: none">Adjustment Reason Code :</label>
+<input type="text" name="reasonCode" id="reasonCodeInput" style="display: none"/><br/>
+<label id="adjustmentPrefixLabel" style="display: none">Prefix of Adjustment:</label>
+<input type="text" name="adjustmentPrefix" id="adjustmentPrefixInput" style="display: none"/><br/>
+<label id="descriptionLabel" style="display: none">English Description : </label>
+<input type="text" name="description" id="descriptionInput" style="display: none"/><br/>
+<label id="glidLabel" style="display: none">GLID : </label>
+<input type="text" name="glid" id="glidInput" style="display: none"/><br/><br/>
+
+<input type="button" value="Search" id="searchId" style="display: none;background-color: #00A2E8;border-color:black" onclick='search();'/>
+<input type="button" value="Cancel" id="cancelId" style="display: none;background-color: #00A2E8;border-color:black" onclick='cancel();'/>
+<input type="button" value="Export" id="exportId" style="display: none;background-color: #00A2E8;border-color:black" onclick="exportExcel('dynamicTableId','adjustments-data');"/>
+             </td>
+         </tr>
+        
+    </table> </center>
+    
+<br/><br/><br/>
+
+<!-- Dynamic Table -->
+
+<center><div id="dynamicTable" style="overflow:scroll;overflow-x:hidden;height:200px;border-top-color: #00A2E8;border-right-color: #00A2E8;border-bottom-color: #00A2E8;border-left-color: #00A2E8;"></div></center>
+
+<center><div id="dynamicErrorTable" style="border-top-color: #00A2E8;border-right-color: #00A2E8;border-bottom-color: #00A2E8;border-left-color: #00A2E8;"></div></center>
+
+
+
+
+
+</form>
+
+</body>
+</html>
